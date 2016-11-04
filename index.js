@@ -13,7 +13,7 @@ var moment = require('moment')
 
 var secret = '123456'
 
-app.get('/', , function(pet, resp){
+app.get('/', function(pet, resp){
 resp.send("Aplicación REST para tienda Online");
 })
 
