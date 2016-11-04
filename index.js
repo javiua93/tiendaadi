@@ -6,7 +6,7 @@ var bp = require('body-parser')
 app.use(bp.json())
 
 var sqlite3 = require('sqlite3').verbose();
-var db = new sqlite3.Database('tienda.db');
+var db = new sqlite3.Database('./tienda.db');
 
 var jwt = require('jwt-simple')
 var moment = require('moment')
