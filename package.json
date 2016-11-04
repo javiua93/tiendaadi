@@ -1,0 +1,23 @@
+{
+  "name": "tienda_zapatos",
+  "version": "1.0.0",
+  "description": "tienda de zapatos online",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.15.2",
+    "express": "^4.14.0",
+    "install": "^0.8.1",
+    "jwt-simple": "^0.5.0",
+    "moment": "^2.15.2",
+    "npm": "^3.10.8",
+    "sqlite3": "^3.1.6"
+  },
+  "devDependencies": {
+    "supertest": "^2.0.1"
+  }
+}
