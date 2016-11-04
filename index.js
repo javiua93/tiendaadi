@@ -13,10 +13,14 @@ var moment = require('moment')
 
 var secret = '123456'
 
+app.get('/', , function(pet, resp){
+resp.send("Aplicación REST para tienda Online");
+})
 
 //Parte modelos
 
 //Devuelve todos los modelos
+
 app.get('/api/modelos', function(pet, resp){
 	
 	//console.log(pet.query.page)
