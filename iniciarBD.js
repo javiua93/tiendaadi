@@ -3,8 +3,11 @@ var db = new sqlite3.Database('tienda.db');
  
 db.serialize(function() {
 
+db.run("DROP TABLE if exists modelo")
+db.run("DROP TABLE if exists usuario")
+db.run("DROP TABLE if exists talla")
 
- db.run("CREATE TABLE if not exists modelo (codigo TEXT, nombre TEXT, descripcion TEXT, precio DOUBLE)");
+ db.run("CREATE TABLE modelo (codigo TEXT, nombre TEXT, descripcion TEXT, precio DOUBLE)");
  var stmt = db.prepare("INSERT INTO modelo VALUES (?,?,?,?)");  
 
  
@@ -21,7 +24,7 @@ db.serialize(function() {
   stmt.run(codigo, nombre, descripcion, precio)
   stmt.finalize(); 
 
-  db.run("CREATE TABLE if not exists usuario (nombre TEXT, pass TEXT, tipo INTEGER)");
+  db.run("CREATE TABLE usuario (nombre TEXT NOT NULL UNIQUE, pass TEXT NOT NULL, tipo INTEGER)");
   var stmt = db.prepare("INSERT INTO usuario VALUES (?,?,?)");
 
   var usu="pepe";
@@ -35,7 +38,7 @@ db.serialize(function() {
 
 	stmt.finalize(); 
 
-	db.run("CREATE TABLE if not exists talla (numero INTEGER NOT NULL UNIQUE, cantidad INTEGER, idModelo INT, FOREIGN KEY(IDMODELO) REFERENCES MODELO(rowid))");
+	db.run("CREATE TABLE talla (numero INTEGER NOT NULL UNIQUE, cantidad INTEGER, idModelo INT, FOREIGN KEY(IDMODELO) REFERENCES MODELO(rowid))");
 	var stmt = db.prepare("INSERT INTO talla VALUES (?,?,?)");
 	var num=37;
 	var cant=4;
@@ -44,9 +47,7 @@ db.serialize(function() {
 	stmt.finalize();
 
 
-  /*db.each("SELECT rowid AS id, info FROM lorem", function(err, row) {
-      console.log(row.id + ": " + row.info);
-  });*/
+ 
 });
  
 db.close();

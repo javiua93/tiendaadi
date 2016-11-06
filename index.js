@@ -89,63 +89,74 @@ app.post('/api/modelos', function(pet, resp) {
    var auth=authorization.split(" ");
   
    var token=auth[1]
-   var decoded = jwt.decode(token, secret)
- 
-   login=decoded['login'];
-   //console.log(esAdmin(login));
-   db.all("SELECT * from usuario WHERE nombre='"+login+"'", function(err, rows) {
-		
-		if(rows[0]==undefined)
-		{
-			resp.status(401);
-			resp.send("Usuario no existente");
-			
-		}
-		else
-		{
-			usu=rows[0]
-			if(usu['tipo']==1)
-			{
-						
-			   if (nuevo.nombre && nuevo.descripcion && nuevo.codigo && nuevo.precio) 
-			   {
-			     
-				
-				 db.run("INSERT INTO modelo VALUES (?,?,?,?)",nuevo.codigo, nuevo.nombre, nuevo.descripcion, nuevo.precio,function(err){
-			                    if(err){
-			                        resp.send("Error en la sql")
-			                    }else{
-			                        //console.log("Id: "+this.lastID);
-			                        resp.header('Location','http://localhost:3000/api/modelos/'+this.lastID)
-			                        var creado={id:this.lastID,codigo:nuevo.codigo, nombre:nuevo.nombre, descripcion:nuevo.descripcion, precio:nuevo.precio}
-				 
-									 resp.status(201)
-									 //Fundamentalismo REST
-									 
-									 //En la práctica muchos APIs devuelven el objeto creado, incluyendo id
-									 resp.send(creado)   
 
-			                    }
-			                }); 
-				 
-				  
-			   }
-			   else {
-			   	 resp.status(400)
-			   	 resp.send("el objeto no tiene los campos adecuados")
-			   }
+   var decoded = jwt.decode(token, secret)
+ 	
+ 	if(decoded.exp <= Date.now())
+ 	{
+ 		resp.status(401)
+ 		resp.send("Token expirado");
+ 	}
+ 	else 
+ 	{
+ 	
+	   login=decoded['login'];
+	   //console.log(esAdmin(login));
+	   db.all("SELECT * from usuario WHERE nombre='"+login+"'", function(err, rows) {
+			
+			if(rows[0]==undefined)
+			{
+				resp.status(401);
+				resp.send("Usuario no existente");
 				
 			}
 			else
 			{
-				//console.log("No tipo 1")
-				 resp.status(403)
-			   	 resp.send("No tienes permisos de administrador")
-			}
-		}
-		
+				usu=rows[0]
+				if(usu['tipo']==1)
+				{
+							
+				   if (nuevo.nombre && nuevo.descripcion && nuevo.codigo && nuevo.precio) 
+				   {
+				     
+					
+					 db.run("INSERT INTO modelo VALUES (?,?,?,?)",nuevo.codigo, nuevo.nombre, nuevo.descripcion, nuevo.precio,function(err){
+				                    if(err){
+				                    	resp.status(401)
+				                        resp.send("Error en la sql")
+				                    }else{
+				                        //console.log("Id: "+this.lastID);
+				                        resp.header('Location','http://localhost:3000/api/modelos/'+this.lastID)
+				                        var creado={id:this.lastID,codigo:nuevo.codigo, nombre:nuevo.nombre, descripcion:nuevo.descripcion, precio:nuevo.precio}
+					 
+										 resp.status(201)
+										 //Fundamentalismo REST
+										 
+										 //En la práctica muchos APIs devuelven el objeto creado, incluyendo id
+										 resp.send(creado)   
 
-	})
+				                    }
+				                }); 
+					 
+					  
+				   }
+				   else {
+				   	 resp.status(400)
+				   	 resp.send("el objeto no tiene los campos adecuados")
+				   }
+					
+				}
+				else
+				{
+					//console.log("No tipo 1")
+					 resp.status(403)
+				   	 resp.send("No tienes permisos de administrador")
+				}
+			}
+			
+
+		})
+	}
 	} 
 	else
 	{
@@ -154,6 +165,8 @@ app.post('/api/modelos', function(pet, resp) {
 	}	
 })
 
+//Modificar los datos de un modelo por la id
+//Utiliza la cabezera authorization y solo tiene permisos un usuario administrador(tipo 1)
 app.put('/api/modelos/:id', function(pet, resp) {
    var nuevo = pet.body;
    var idParam = parseInt(pet.params.id)
@@ -169,64 +182,71 @@ app.put('/api/modelos/:id', function(pet, resp) {
   
    var token=auth[1]
    var decoded = jwt.decode(token, secret)
- 
-   login=decoded['login'];
-   //console.log(esAdmin(login));
-   db.all("SELECT * from usuario WHERE nombre='"+login+"'", function(err, rows) {
-		
-		if(rows[0]==undefined)
-		{
-			resp.status(401);
-			resp.send("Usuario no existente");
+ 	if(decoded.exp <= Date.now())
+ 	{
+ 		resp.status(401)
+ 		resp.send("Token expirado");
+ 	}
+ 	else 
+ 	{
+	   login=decoded['login'];
+	   
+	   db.all("SELECT * from usuario WHERE nombre='"+login+"'", function(err, rows) {
 			
-		}
-		else
-		{
-			usu=rows[0]
-			if(usu['tipo']==1)
+			if(rows[0]==undefined)
 			{
-						
-			   if (nuevo.nombre && nuevo.descripcion && nuevo.codigo && nuevo.precio) 
-			   {
-			     
-				
-				 db.run("UPDATE modelo SET codigo = ? , nombre = ?, descripcion = ?, precio = ? WHERE rowid = ?",nuevo.codigo, nuevo.nombre, nuevo.descripcion, nuevo.precio, idParam, function(err){
-			                    if(err){
-			                    	resp.status(401)
-			                        resp.send("Error en la sql: "+ err)
-			                       
-			                    }else{
-			                        //console.log("Id: "+this.lastID);
-			                        resp.header('Location','http://localhost:3000/api/modelos/'+idParam)
-			                        var creado={id:idParam,codigo:nuevo.codigo, nombre:nuevo.nombre, descripcion:nuevo.descripcion, precio:nuevo.precio}
-				 
-									 resp.status(200)
-									 //Fundamentalismo REST
-									 
-									 //En la práctica muchos APIs devuelven el objeto creado, incluyendo id
-									 resp.send(creado)   
-
-			                    }
-			                }); 
-				 
-				  
-			   }
-			   else {
-			   	 resp.status(400)
-			   	 resp.send("el objeto no tiene los campos adecuados")
-			   }
+				resp.status(401);
+				resp.send("Usuario no existente");
 				
 			}
 			else
 			{
-				//console.log("No tipo 1")
-				 resp.status(403)
-			   	 resp.send("No tienes permisos de administrador")
-			}
-		}
-		
+				usu=rows[0]
+				if(usu['tipo']==1)
+				{
+							
+				   if (nuevo.nombre && nuevo.descripcion && nuevo.codigo && nuevo.precio) 
+				   {
+				     
+					
+					 db.run("UPDATE modelo SET codigo = ? , nombre = ?, descripcion = ?, precio = ? WHERE rowid = ?",nuevo.codigo, nuevo.nombre, nuevo.descripcion, nuevo.precio, idParam, function(err){
+				                    if(err){
+				                    	resp.status(401)
+				                        resp.send("Error en la sql: "+ err)
+				                       
+				                    }else{
+				                        //console.log("Id: "+this.lastID);
+				                        resp.header('Location','http://localhost:3000/api/modelos/'+idParam)
+				                        var creado={id:idParam,codigo:nuevo.codigo, nombre:nuevo.nombre, descripcion:nuevo.descripcion, precio:nuevo.precio}
+					 
+										 resp.status(200)
+										 //Fundamentalismo REST
+										 
+										 //En la práctica muchos APIs devuelven el objeto creado, incluyendo id
+										 resp.send(creado)   
 
-	})
+				                    }
+				                }); 
+					 
+					  
+				   }
+				   else {
+				   	 resp.status(400)
+				   	 resp.send("el objeto no tiene los campos adecuados")
+				   }
+					
+				}
+				else
+				{
+					//console.log("No tipo 1")
+					 resp.status(403)
+				   	 resp.send("No tienes permisos de administrador")
+				}
+			}
+			
+
+		})
+	}
 	} 
 	else
 	{
@@ -234,7 +254,9 @@ app.put('/api/modelos/:id', function(pet, resp) {
 		resp.send("Usuario no logueado")
 	}	
 })
+
 //Delete del objeto por id
+//Utiliza la cabezera authorization y solo tiene permisos un usuario administrador(tipo 1)
 app.delete('/api/modelos/:id', function(pet, resp){
 	var id = parseInt(pet.params.id)
 	
@@ -250,50 +272,57 @@ app.delete('/api/modelos/:id', function(pet, resp){
 		{
 
 
-	   var auth=authorization.split(" ");
-	  
-	   var token=auth[1]
-	   var decoded = jwt.decode(token, secret)
-	 
-	   login=decoded['login'];
-	   
+		   var auth=authorization.split(" ");
+		  
+		   var token=auth[1]
+		   var decoded = jwt.decode(token, secret)
+		 	if(decoded.exp <= Date.now())
+		 	{
+		 		resp.status(401)
+		 		resp.send("Token expirado");
+		 	}
+		 	else 
+		 	{
+			   login=decoded['login'];
+			   
 
-	   		db.all("SELECT * from usuario WHERE nombre='"+login+"'", function(err, rows) {
-			
-				if(rows[0]==undefined)
-				{
-					resp.status(401);
-					resp.send("Usuario no existente");
-					
-				}
-				else
-				{
-					usu=rows[0]
-					if(usu['tipo']==1)
+		   		db.all("SELECT * from usuario WHERE nombre='"+login+"'", function(err, rows) {
+				
+					if(rows[0]==undefined)
 					{
-					db.run("DELETE from modelo where rowid="+id, function(err) {
-
-						if (err) 
-						{
-							console.log(err)
-							resp.status(404)
-							resp.send('No existe el item con id ' + id);
-						}
-						else
-						{
-							console.log("Modelo borrado: "+ id)
-							resp.end();
-						}
-					});
+						resp.status(401);
+						resp.send("Usuario no existente");
+						
 					}
 					else
 					{
-						 resp.status(403)
-				   		 resp.send("No tienes permisos de administrador")
+						usu=rows[0]
+						if(usu['tipo']==1)
+						{
+						db.run("DELETE from modelo where rowid="+id, function(err) {
+
+							if (err) 
+							{
+								console.log(err)
+								resp.status(404)
+								resp.send('No existe el item con id ' + id);
+							}
+							else
+							{
+								console.log("Modelo borrado: "+ id)
+								resp.end();
+							}
+						});
+						}
+						else
+						{
+							 resp.status(403)
+					   		 resp.send("No tienes permisos de administrador")
+						}
+				
 					}
-			
-				}
-			})
+				})
+		    }
 		}
 		else
 		{
@@ -306,6 +335,7 @@ app.delete('/api/modelos/:id', function(pet, resp){
 })
 
 //Parte usuarios
+
 //Si es correcto devuelve un token 
 app.post('/api/doLogin', function(pet, resp){
 	var usuario=pet.body;
@@ -320,7 +350,7 @@ app.post('/api/doLogin', function(pet, resp){
 			{
 				var payload= {
 				login : log,
-				exp : moment().add(7, 'days').valueOf()
+				exp : moment().add(30, 'minutes').valueOf()
 				}
 				var token =jwt.encode(payload, secret);
 
@@ -362,6 +392,7 @@ app.post('/api/registro', function(pet, resp){
 				 var tipo=0;
 				 db.run("INSERT INTO usuario VALUES (?,?,?)",usuario.login, usuario.pass, tipo, function(err){
 			                    if(err){
+			                    	resp.status(401)
 			                        resp.send("Error en la sql")
 			                    }else{
 			                        //console.log("Id: "+this.lastID);
@@ -395,49 +426,69 @@ app.post('/api/registro', function(pet, resp){
 app.get('/api/usuarios', function(pet, resp){
 	
 	//console.log(pet.query.page)
-	var auth=pet.headers['authorization'].split(" ");
-   //console.log(auth[1])
-   var token=auth[1]
-   var decoded = jwt.decode(token, secret)
-   
-   login=decoded['login'];
-	 db.all("SELECT * from usuario WHERE nombre='"+login+"'", function(err, rows) {
-		
-		if(rows[0]==undefined)
+	
+   var authorization=pet.headers['authorization'];
+
+		if(authorization!=undefined)
 		{
-			resp.status(401);
-			resp.send("Usuario no existente");
-			
+
+
+		   var auth=authorization.split(" ");
+		  
+		   var token=auth[1]
+		   var decoded = jwt.decode(token, secret)
+		 	if(decoded.exp <= Date.now())
+		 	{
+		 		resp.status(401)
+		 		resp.send("Token expirado");
+		 	}
+		 	else 
+		 	{
+		 		var login=decoded['login']
+				 db.all("SELECT * from usuario WHERE nombre='"+login+"'", function(err, rows) {
+					
+					if(rows[0]==undefined)
+					{
+						resp.status(401);
+						resp.send("Usuario no existente");
+						
+					}
+					else
+					{
+						usu=rows[0]
+						if(usu['tipo']==1)
+						{
+									
+						   db.all("SELECT nombre as nombre FROM usuario", function(err, rows) {
+								var pagina=pet.query.page;
+								var n=5;
+								if(pagina==undefined)
+								{
+								  resp.send(rows)
+								} else
+								{
+								  resp.send(rows.splice(n*pagina,(n*pagina)+n))	
+								}
+								
+						  });
+							
+						}
+						else
+						{
+							//console.log("No tipo 1")
+							 resp.status(401)
+						   	 resp.send("No tienes permisos de administrador")
+						}
+					}
+					
+				})
+			}
 		}
 		else
 		{
-			usu=rows[0]
-			if(usu['tipo']==1)
-			{
-						
-			   db.all("SELECT nombre as nombre FROM usuario", function(err, rows) {
-					var pagina=pet.query.page;
-					var n=5;
-					if(pagina==undefined)
-					{
-					  resp.send(rows)
-					} else
-					{
-					  resp.send(rows.splice(n*pagina,(n*pagina)+n))	
-					}
-					
-			  });
-				
-			}
-			else
-			{
-				//console.log("No tipo 1")
-				 resp.status(401)
-			   	 resp.send("No tienes permisos de administrador")
-			}
+			resp.status(401)
+			resp.send("Usuario no logueado")
 		}
-		
-	})
 	
 	
 })
@@ -484,60 +535,67 @@ app.post('/api/modelos/:id/tallas', function(pet,resp){
    var token=auth[1]
    var decoded = jwt.decode(token, secret)
  
-   login=decoded['login'];
-   //console.log(esAdmin(login));
-   db.all("SELECT * from usuario WHERE nombre='"+login+"'", function(err, rows) {
-		
-		if(rows[0]==undefined)
+ 	    if(decoded.exp <= Date.now())
 		{
-			resp.status(401);
-			resp.send("Usuario no existente");
-			
-		}
-		else
-		{
-			usu=rows[0]
-			if(usu['tipo']==1)
-			{
-						
-			   if (nuevo.numero && nuevo.cantidad) 
-			   {
-			     
-				db.all("SELECT * from modelo WHERE rowid="+id, function(err2, rowsModelo) {
-					if(rowsModelo[0]!=undefined)
+	 		resp.status(401)
+	 		resp.send("Token expirado");
+	 	}
+	 	else 
+	 	{
+		   login=decoded['login'];
+		   //console.log(esAdmin(login));
+		   db.all("SELECT * from usuario WHERE nombre='"+login+"'", function(err, rows) {
+				
+				if(rows[0]==undefined)
+				{
+					resp.status(401);
+					resp.send("Usuario no existente");
+					
+				}
+				else
+				{
+					usu=rows[0]
+					if(usu['tipo']==1)
 					{
+								
+					   if (nuevo.numero && nuevo.cantidad) 
+					   {
+					     
+						db.all("SELECT * from modelo WHERE rowid="+id, function(err2, rowsModelo) {
+							if(rowsModelo[0]!=undefined)
+							{
 
-					 db.run("INSERT INTO talla VALUES (?,?,?)",nuevo.numero, nuevo.cantidad, id,function(errSql){
-				                    if(errSql){
-				                    	resp.status(401)
-				                        resp.send("Error en la sql: "+errSql)
-				                    }else{
-				                        //console.log("Id: "+this.lastID);
-				                        resp.header('Location','http://localhost:3000/api/modelos/'+id+'/tallas/'+this.lastID)
-				                        var creado={id:this.lastID,numero:nuevo.numero, cantidad:nuevo.cantidad, idmodelo:id}
-					 
-										 resp.status(201)
-										 //Fundamentalismo REST
-										 
-										 //En la práctica muchos APIs devuelven el objeto creado, incluyendo id
-										 resp.send(creado)   
+							 db.run("INSERT INTO talla VALUES (?,?,?)",nuevo.numero, nuevo.cantidad, id,function(errSql){
+						                    if(errSql){
+						                    	resp.status(401)
+						                        resp.send("Error en la sql: "+errSql)
+						                    }else{
+						                        //console.log("Id: "+this.lastID);
+						                        resp.header('Location','http://localhost:3000/api/modelos/'+id+'/tallas/'+this.lastID)
+						                        var creado={id:this.lastID,numero:nuevo.numero, cantidad:nuevo.cantidad, idmodelo:id}
+							 
+												 resp.status(201)
+												 //Fundamentalismo REST
+												 
+												 //En la práctica muchos APIs devuelven el objeto creado, incluyendo id
+												 resp.send(creado)   
 
-				                    }
-				                }); 
-					}
-					else
-					{
-						resp.status(404);
-						resp.send("El modelo no existe");
-					}
-					});
-				 }
-				  
-			   
-			   else {
-			   	 resp.status(400)
-			   	 resp.send("el objeto no tiene los campos adecuados")
-			   }
+						                    }
+						                }); 
+							}
+							else
+							{
+								resp.status(404);
+								resp.send("El modelo no existe");
+							}
+							});
+				        }
+						else 
+						{
+					   	 resp.status(400)
+					   	 resp.send("el objeto no tiene los campos adecuados")
+					    }
+
 				
 			}
 			else
@@ -548,6 +606,8 @@ app.post('/api/modelos/:id/tallas', function(pet,resp){
 			}
 		}
 		})
+		}
+
 	} 
 	else
 	{
@@ -573,71 +633,78 @@ app.put('/api/modelos/:id/tallas/:idtalla', function(pet,resp){
   
    var token=auth[1]
    var decoded = jwt.decode(token, secret)
- 
-   login=decoded['login'];
-   //console.log(esAdmin(login));
-   db.all("SELECT * from usuario WHERE nombre='"+login+"'", function(err, rows) {
-		
-		if(rows[0]==undefined)
+ 		if(decoded.exp <= Date.now())
 		{
-			resp.status(401);
-			resp.send("Usuario no existente");
-			
-		}
-		else
-		{
-			usu=rows[0]
-			if(usu['tipo']==1)
-			{
-						
-			   if (nuevo.cantidad) 
-			   {
-			     
-				db.all("SELECT * FROM talla, modelo WHERE modelo.rowid=talla.idmodelo and talla.idmodelo="+id+" and talla.rowid="+idt, function(err, rowsTallaModelo) {
-					if(rowsTallaModelo[0]!=undefined)
+	 		resp.status(401)
+	 		resp.send("Token expirado");
+	 	}
+	 	else 
+	 	{
+		   login=decoded['login'];
+		   //console.log(esAdmin(login));
+		   db.all("SELECT * from usuario WHERE nombre='"+login+"'", function(err, rows) {
+				
+				if(rows[0]==undefined)
+				{
+					resp.status(401);
+					resp.send("Usuario no existente");
+					
+				}
+				else
+				{
+					usu=rows[0]
+					if(usu['tipo']==1)
 					{
+								
+					   if (nuevo.cantidad) 
+					   {
+					     
+						db.all("SELECT * FROM talla, modelo WHERE modelo.rowid=talla.idmodelo and talla.idmodelo="+id+" and talla.rowid="+idt, function(err, rowsTallaModelo) {
+							if(rowsTallaModelo[0]!=undefined)
+							{
 
-					 db.run("UPDATE talla SET cantidad = ? WHERE rowid = ?", nuevo.cantidad, idt,function(errSql){
-				                    if(errSql){
-				                    	resp.status(401)
-				                        resp.send("Error en la sql: "+errSql)
-				                    }else{
-				                        //console.log("Id: "+this.lastID);
-				                        resp.header('Location','http://localhost:3000/api/modelos/'+id+'/tallas/'+idt)
-				                        var creado={id:idt,numero:nuevo.numero, cantidad:nuevo.cantidad, idmodelo:id}
-					 
-										 resp.status(200)
-										 //Fundamentalismo REST
-										 
-										 //En la práctica muchos APIs devuelven el objeto creado, incluyendo id
-										 resp.send(creado)   
+							 db.run("UPDATE talla SET cantidad = ? WHERE rowid = ?", nuevo.cantidad, idt,function(errSql){
+						                    if(errSql){
+						                    	resp.status(401)
+						                        resp.send("Error en la sql: "+errSql)
+						                    }else{
+						                        //console.log("Id: "+this.lastID);
+						                        resp.header('Location','http://localhost:3000/api/modelos/'+id+'/tallas/'+idt)
+						                        var creado={id:idt,numero:nuevo.numero, cantidad:nuevo.cantidad, idmodelo:id}
+							 
+												 resp.status(200)
+												 //Fundamentalismo REST
+												 
+												 //En la práctica muchos APIs devuelven el objeto creado, incluyendo id
+												 resp.send(creado)   
 
-				                    }
-				                }); 
+						                    }
+						                }); 
+							}
+							else
+							{
+								resp.status(404);
+								resp.send("El modelo no está relacionado con la talla o no existe");
+							}
+							});
+						 }
+						  
+					   
+					   else {
+					   	 resp.status(400)
+					   	 resp.send("el objeto no tiene los campos adecuados")
+					   }
+						
 					}
 					else
 					{
-						resp.status(404);
-						resp.send("El modelo no está relacionado con la talla o no existe");
+						//console.log("No tipo 1")
+						 resp.status(403)
+					   	 resp.send("No tienes permisos de administrador")
 					}
-					});
-				 }
-				  
-			   
-			   else {
-			   	 resp.status(400)
-			   	 resp.send("el objeto no tiene los campos adecuados")
-			   }
-				
-			}
-			else
-			{
-				//console.log("No tipo 1")
-				 resp.status(403)
-			   	 resp.send("No tienes permisos de administrador")
-			}
+				}
+				})
 		}
-		})
 	} 
 	else
 	{
